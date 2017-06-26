@@ -4,17 +4,18 @@
 
 namespace dsh {
 
-// TODO: can '&&' be stored in a uint16_t?
 enum class Operator {
-  And,             // &&
-  Or,              // ||
-  Pipe,            // |
-  RedirectIn,      // <
-  RedirectOut,     // >
-  Fork,            // &
-  Semicolon,       // ;
-  ParenthesisOpen, // (
-  ParenthesisClose // )
+  And,              // &&
+  Or,               // ||
+  Pipe,             // |
+  RedirectIn,       // <
+  RedirectOut,      // >
+  Fork,             // &
+  GroupStart,       // (
+  GroupClose,       // )
+  Substitution,     // `
+  VariableStart,    // ${
+  VariableClose     // }
 };
 
 class Token {
