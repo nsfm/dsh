@@ -33,7 +33,7 @@ std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
     // Proceed with a simple state machine to tokenize the input.
 
     // We're in between tokens.
-    if (scratch_token.empty() && !in_quotes) {
+    if (!in_quotes) {
 
       // If it's a quote, we'll enter that state and start appending in the next iteration.
       if (c == '"') {
@@ -45,30 +45,22 @@ std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
       // Semicolons count as whitespace, essentially.
       // Using locale so that users of unusual character sets will be good to go.
       if (std::isspace(c, _locale)) {
+        if (!scratch_token.empty()) {
+          output.push_back(scratch_token);
+          scratch_token.clear();
+        }
         continue;
       }
 
     // We're working on a new token.
     } else {
+      // If we're in quotes, we need to check for an unescaped quote.
 
-      if (in_quotes) {
-        // If we're in quotes, we need to check for an unescaped quote.
-
-        if (c == '"') {
-          output.push_back(scratch_token);
-          scratch_token.clear();
-          in_quotes = false;
-          continue;
-        }
-
-      } else {
-        // If we're not currently in quotes, we only need to check for whitespace.
-
-        if (std::isspace(c, _locale)) {
-          output.push_back(scratch_token);
-          scratch_token.clear();
-          continue;
-        }
+      if (c == '"') {
+        output.push_back(scratch_token);
+        scratch_token.clear();
+        in_quotes = false;
+        continue;
       }
     }
 
