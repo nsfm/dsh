@@ -25,6 +25,7 @@ std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
   std::vector<dsh::Token> output; // The vector of tokens to return.
 
   // TODO: Less greedy matching for operators...
+  // TODO: Escaping characters.
   // TODO: Single quote support?
   // TODO: Heredoc support? Will probably need an additional preprocessing step.
 
@@ -32,7 +33,6 @@ std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
   for (auto& c : input) {
     // Proceed with a simple state machine to tokenize the input.
 
-    // We're in between tokens.
     if (!in_quotes) {
 
       // If it's a quote, we'll enter that state and start appending in the next iteration.
@@ -42,7 +42,6 @@ std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
       }
 
       // Skip whitespace that isn't inside quotation marks.
-      // Semicolons count as whitespace, essentially.
       // Using locale so that users of unusual character sets will be good to go.
       if (std::isspace(c, _locale)) {
         if (!scratch_token.empty()) {
@@ -52,10 +51,8 @@ std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
         continue;
       }
 
-    // We're working on a new token.
     } else {
       // If we're in quotes, we need to check for an unescaped quote.
-
       if (c == '"') {
         output.push_back(scratch_token);
         scratch_token.clear();
