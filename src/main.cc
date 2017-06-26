@@ -13,7 +13,7 @@ int main() {
   dsh::DefaultLexer lexer = dsh::DefaultLexer();
 
   std::cout << "About to lex..." << std::endl;
-  std::vector<dsh::Token> tokens = lexer.lex("Hello \"te;st\" ; & && () ( ) ` ${VAR} ");
+  std::vector<dsh::Token> tokens = lexer.lex("Hello \"te;st\" ; & && || ||| |||| () ( ) ` ${VAR} ");
   std::cout << "Lexed " << tokens.size() << " tokens." << std::endl;
 
   for (auto token : tokens) {
