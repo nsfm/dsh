@@ -6,8 +6,6 @@ namespace dsh {
 
 // TODO: can '&&' be stored in a uint16_t?
 enum class Operator {
-  Command,         // ex: cp
-  Argument,        // ex: file.txt
   And,             // &&
   Or,              // ||
   Pipe,            // |
@@ -34,7 +32,6 @@ inline Token::Token(std::string contents) {
   _text = contents;
 }
 
-// TODO: Return reference?
 inline std::string Token::get_contents(void) {
   return _text;
 }

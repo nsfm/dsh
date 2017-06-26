@@ -1,9 +1,15 @@
 #include <iostream>
 #include <vector>
 
-#include "dsh_lexer.hh"
+#include "default_lexer.hh"
+#include "default_parser.hh"
+#include "shell.hh"
 
 int main() {
+
+  dsh::Shell<dsh::DefaultLexer, dsh::DefaultParser> shell;
+
+  /*
   dsh::DefaultLexer lexer = dsh::DefaultLexer();
 
   std::cout << "About to lex..." << std::endl;
@@ -13,6 +19,9 @@ int main() {
   for (auto token : tokens) {
     std::cout << token.get_contents() << std::endl;
   }
+
+  */
+
 
   return 0;
 }

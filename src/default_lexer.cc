@@ -1,6 +1,6 @@
 #include <locale> // std::locale, std::isspace
-#include <iostream>
-#include "dsh_lexer.hh"
+
+#include "default_lexer.hh"
 
 std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
 
@@ -28,17 +28,12 @@ std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
         continue;
       }
 
-      // Otherwise, we're starting a new token.
-      scratch_token += c;
-
     // We're working on a new token.
     } else {
 
       if (in_quotes) {
+        // If we're in quotes, we need to check for an unescaped quote.
 
-        // If it's another quote, end the token.
-        // It's okay if the token is an empty string.
-        // TODO: Escaped quotes.
         if (c == '"') {
           output.push_back(dsh::Token(scratch_token));
           scratch_token.clear();
@@ -46,23 +41,20 @@ std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
           continue;
         }
 
-        // Otherwise, just keep pushing the characters onto the scratch token.
-        scratch_token += c;
-
-      // If we're not currently in quotes, then keep appending characters until we hit whitespace.
       } else {
-        // TODO: Separate unescaped operators.
+        // If we're not currently in quotes, we only need to check for whitespace and operators.
 
         if (std::isspace(c, _locale)) {
           output.push_back(dsh::Token(scratch_token));
           scratch_token.clear();
           continue;
-        } else {
-          scratch_token += c;
-          continue;
         }
+
       }
     }
+
+    // If we didn't hit a continue condition, append this character to the scratch token.
+    scratch_token += c;
   }
 
   if (!scratch_token.empty()) {
