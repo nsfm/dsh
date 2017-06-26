@@ -10,9 +10,6 @@ namespace dsh {
 // The built-in dsh lexer.
 class DefaultLexer : protected Lexer {
   public:
-    DefaultLexer();
-    ~DefaultLexer();
-
     std::vector<dsh::Token> lex(std::string input);
 
   protected:

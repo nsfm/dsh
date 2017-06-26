@@ -22,7 +22,6 @@ enum class Operator {
 class Token {
   public:
     Token(std::string contents);
-    ~Token();
 
     std::string get_contents(void);
 

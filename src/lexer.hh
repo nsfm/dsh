@@ -10,8 +10,6 @@ namespace dsh {
 // A base Lexer class. Inherit from this to implement your own.
 class Lexer {
   public:
-    Lexer();
-    ~Lexer();
 
     // The lex function accepts an input string and returns a vector of tokens.
     // It should normalize the tokens so that they can be passed to the Parser

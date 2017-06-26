@@ -24,7 +24,7 @@ To cross compile, it should be sufficient to export the name of your cross compi
 Ex: `export CXX="arm-linux-gcc"`, then `make` <br/>
 Ex: `CXX=arm-linux-gcc make`
 
-Tested with gcc. No other compilation tools are specifically used. <br/>
+No other compilation tools are specifically used. <br/>
 See the Makefile for additional overrides.
 
 ## Disclaimers

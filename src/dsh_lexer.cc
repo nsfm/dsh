@@ -1,5 +1,5 @@
 #include <locale> // std::locale, std::isspace
-
+#include <iostream>
 #include "dsh_lexer.hh"
 
 std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
@@ -10,23 +10,26 @@ std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
   std::vector<dsh::Token> output; // The vector of tokens to return.
 
   // Loop through, character by character.
-  for (char& c : input) {
-
+  for (auto& c : input) {
     // Proceed with a simple state machine to tokenize the input.
 
     // We're in between tokens.
     if (scratch_token.empty() && !in_quotes) {
 
-      // Skip whitespace that isn't inside quotation marks.
-      // Using locale so that foreign language/character set users will be good to go.
-      if (std::isspace(static_cast<unsigned char>(c), _locale)) {
+      // If it's a quote, we'll enter that state and start appending in the next iteration.
+      if (c == '"') {
+        in_quotes = true;
         continue;
       }
 
-      if (c == '"') {
-        in_quotes = true;
-        continue; // We'll start appending to the scratch token in the next iteration.
+      // Skip whitespace that isn't inside quotation marks.
+      // Using locale so that foreign language/character set users will be good to go.
+      if (std::isspace(c, _locale)) {
+        continue;
       }
+
+      // Otherwise, we're starting a new token.
+      scratch_token += c;
 
     // We're working on a new token.
     } else {
@@ -37,31 +40,33 @@ std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
         // It's okay if the token is an empty string.
         // TODO: Escaped quotes.
         if (c == '"') {
-          output.push_back(scratch_token);
+          output.push_back(dsh::Token(scratch_token));
           scratch_token.clear();
           in_quotes = false;
           continue;
-        } else {
-          // Otherwise, just keep pushing the characters onto the scratch token.
-          scratch_token.push_back(c);
-          continue;
         }
+
+        // Otherwise, just keep pushing the characters onto the scratch token.
+        scratch_token += c;
 
       // If we're not currently in quotes, then keep appending characters until we hit whitespace.
       } else {
         // TODO: Separate unescaped operators.
 
-        if (std::isspace(static_cast<unsigned char>(c), _locale)) {
-          output.push_back(scratch_token);
+        if (std::isspace(c, _locale)) {
+          output.push_back(dsh::Token(scratch_token));
           scratch_token.clear();
           continue;
         } else {
-          scratch_token.push_back(c);
+          scratch_token += c;
           continue;
         }
       }
     }
+  }
 
+  if (!scratch_token.empty()) {
+    output.push_back(dsh::Token(scratch_token));
   }
 
   return output;
