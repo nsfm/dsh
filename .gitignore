@@ -1,0 +1,6 @@
+dsh
+build/
+dependencies/
+*.o
+*.swp
+*.d
