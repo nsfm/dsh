@@ -2,7 +2,7 @@
 
 #include "default_lexer.hh"
 
-std::map<std::string, dsh::Operator> dsh::DefaultLexer::op_lookup = {
+std::map<std::string, dsh::Operator> dsh::DefaultLexer::_op_lookup = {
   { "&",  Operator::Fork          },
   { "|",  Operator::Pipe          },
   { "&&", Operator::And           },
@@ -13,15 +13,20 @@ std::map<std::string, dsh::Operator> dsh::DefaultLexer::op_lookup = {
   { ")",  Operator::GroupClose    },
   { "${", Operator::VariableStart },
   { "}",  Operator::VariableClose },
-  { "`",  Operator::Substitution  }
+  { "`",  Operator::Substitution  },
+  { ";",  Operator::StatementEnd  }
 };
 
 std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
 
-  bool in_quotes = false;         // Behavior changes for quoted arguments.
-  //bool escaped   = false;         // Behavior changes if we're expecting to escape the next character.
-  std::string scratch_token;      // Token in progress.
+  bool in_quotes = false;         // Behavior will change for quoted arguments.
+  //bool escaped   = false;       // Behavior changes if we're expecting to escape the next character.
+  std::string scratch_token;      // Argument token in progress.
   std::vector<dsh::Token> output; // The vector of tokens to return.
+
+  // TODO: Less greedy matching for operators...
+  // TODO: Single quote support?
+  // TODO: Heredoc support? Will probably need an additional preprocessing step.
 
   // Loop through, character by character.
   for (auto& c : input) {
@@ -39,7 +44,7 @@ std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
       // Skip whitespace that isn't inside quotation marks.
       // Semicolons count as whitespace, essentially.
       // Using locale so that users of unusual character sets will be good to go.
-      if (std::isspace(c, _locale) || c == ';') {
+      if (std::isspace(c, _locale)) {
         continue;
       }
 
@@ -50,30 +55,56 @@ std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
         // If we're in quotes, we need to check for an unescaped quote.
 
         if (c == '"') {
-          output.push_back(dsh::Token(scratch_token));
+          output.push_back(scratch_token);
           scratch_token.clear();
           in_quotes = false;
           continue;
         }
 
       } else {
-        // If we're not currently in quotes, we only need to check for whitespace and operators.
+        // If we're not currently in quotes, we only need to check for whitespace.
 
-        if (std::isspace(c, _locale) || c == ';') {
-          output.push_back(dsh::Token(scratch_token));
+        if (std::isspace(c, _locale)) {
+          output.push_back(scratch_token);
           scratch_token.clear();
           continue;
         }
-
       }
     }
 
     // If we didn't hit a continue condition, append this character to the scratch token.
     scratch_token += c;
+
+    // Now we can check for operator matches.
+    if (!in_quotes) {
+      for (auto& tok : _op_lookup) {
+        // Can't match if it's too small.
+        if (scratch_token.length() < tok.first.length()) {
+          continue;
+        }
+
+        // The string to compare against.
+        std::string comp(
+            (scratch_token.length() == tok.first.length()) ?
+            (scratch_token) : std::string(scratch_token.end()-tok.first.length(), scratch_token.end())
+            );
+
+        if (comp == tok.first) {
+          if (scratch_token.length() == tok.first.length()) {
+            output.push_back(scratch_token);
+          } else {
+            output.push_back(std::string(scratch_token.begin(), scratch_token.end()-tok.first.length()));
+            output.push_back(comp);
+          }
+          scratch_token.clear();
+          break;
+        }
+      }
+    }
   }
 
   if (!scratch_token.empty()) {
-    output.push_back(dsh::Token(scratch_token));
+    output.push_back(scratch_token);
   }
 
   return output;

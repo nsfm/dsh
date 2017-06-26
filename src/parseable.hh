@@ -4,18 +4,20 @@
 
 namespace dsh {
 
-enum class Operator {
-  And,              // &&
-  Or,               // ||
-  Pipe,             // |
-  RedirectIn,       // <
-  RedirectOut,      // >
-  Fork,             // &
-  GroupStart,       // (
-  GroupClose,       // )
-  Substitution,     // `
-  VariableStart,    // ${
-  VariableClose     // }
+enum class Operator : char { // Bash equivalents:
+  Argument = 0,       //
+  And,                // &&
+  Or,                 // ||
+  Pipe,               // |
+  RedirectIn,         // <
+  RedirectOut,        // >
+  Fork,               // &
+  GroupStart,         // (
+  GroupClose,         // )
+  Substitution,       // `
+  VariableStart,      // ${
+  VariableClose,      // }
+  StatementEnd        // ;
 };
 
 class Token {

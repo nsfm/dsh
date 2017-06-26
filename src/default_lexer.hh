@@ -16,8 +16,8 @@ class DefaultLexer : protected Lexer {
   protected:
     // The user's system locale details.
     std::locale _locale;
-    // Representations of our operators.
-    static std::map<std::string, dsh::Operator> op_lookup;
+    // Visual representations of our operators.
+    static std::map<std::string, dsh::Operator> _op_lookup;
 };
 
 }
