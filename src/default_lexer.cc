@@ -1,5 +1,6 @@
 #include <locale>    // std::locale, std::isspace
 #include <algorithm> // std::sort
+#include <stdexcept> // std::invalid_argument... TODO: Should this project have its own exception types?
 
 #include "default_lexer.hh"
 
@@ -34,7 +35,7 @@ dsh::DefaultLexer::DefaultLexer() {
   for (auto& op_a : _op_lookup) {
      _op_greedy_lookup[op_a.second] = std::vector<dsh::Operator>();
 
-    // Find all other operators that could accidentally match.std::string(op_b.first.begin(), op_b.first.begin() + op_a.first.length())
+    // Find all other operators that could accidentally match.
     for (auto& op_b : _op_lookup) {
       if (op_a.first.length() >= op_b.first.length()) {
         continue;
@@ -178,6 +179,11 @@ std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
 
   if (!scratch_token.empty()) {
     output.push_back({scratch_token, dsh::Operator::Argument});
+  }
+
+  // We ended the line without closing out some quotes... that's illegal.
+  if (in_quotes) {
+    throw std::invalid_argument("Failed to lex: unmatched quotation mark.");
   }
 
   return output;
