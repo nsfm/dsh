@@ -18,7 +18,7 @@ std::map<std::string, dsh::Operator> dsh::DefaultLexer::_op_lookup = {
   { ")",  Operator::GroupClose    },
   { "${", Operator::VariableStart },
   { "}",  Operator::VariableClose },
-  { "`",  Operator::Substitution  },
+  { "`",  Operator::Substitution  }, // Substitution is an odd one out. It's parsed with the quotes, but is special.
   { ";",  Operator::StatementEnd  }
 };
 
@@ -62,15 +62,15 @@ dsh::DefaultLexer::DefaultLexer() {
 
 std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
 
-  bool in_quotes = false;         // Behavior will change for quoted arguments.
-  bool in_substitution = false;   // Behavior changes between substitution tokens.
+  bool in_quotes = false;         // Behavior will change for quoted input.
+  char quotes_type = '\0';        // There are a few different kinds of quotes. Backticks, double, single.
   //bool escaped   = false;       // Behavior changes if we're expecting to escape the next character.
   std::string scratch_token;      // Argument token in progress.
   std::vector<dsh::Token> output; // The vector of tokens to return.
   size_t skip = 0;                // We may need to skip iterations if we look ahead.
 
   // TODO: Escaping characters.
-  // TODO: Single quote support? Related - Operator::Variable operators should be allowed in double quotes.
+  // TODO: Operator::Variable operators should be allowed in double quotes.
   // TODO: Heredoc support? Will probably need an additional preprocessing step.
 
   // Loop through, character by character.
@@ -82,18 +82,12 @@ std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
       continue;
     }
 
-    if (!in_quotes && !in_substitution) {
+    if (!in_quotes) {
 
       // If it's a quote, we'll enter that state and start appending in the next iteration.
-      if (c == '"') {
+      if (c == '"' || c == '`' || c == '\'') {
         in_quotes = true;
-        continue;
-      }
-
-      // If it's a subsitution token, we'll enter a similar state.
-      // TODO: Handle this correctly.
-      if (c == '`') {
-        in_substitution = true;
+        quotes_type = c;
         continue;
       }
 
@@ -108,18 +102,12 @@ std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
       }
 
     } else {
-      // If we're in quotes, we need to check for an unescaped quote.
-      if (in_quotes && (c == '"')) {
-        output.push_back({scratch_token, dsh::Operator::Argument});
+      // If we're in quotes, we need to check for an unescaped end quote.
+      if (in_quotes && (c == quotes_type)) {
+        output.push_back({scratch_token, (c == '`') ? dsh::Operator::Substitution : dsh::Operator::Argument});
         scratch_token.clear();
         in_quotes = false;
-        continue;
-      }
-
-      if (in_substitution && (c == '`')) {
-        output.push_back({scratch_token, dsh::Operator::Substitution});
-        scratch_token.clear();
-        in_substitution = false;
+        quotes_type = '\0';
         continue;
       }
     }
@@ -128,7 +116,7 @@ std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
     scratch_token += c;
 
     // Now we can check for operator matches. This is the tricky part.
-    if (!in_quotes && !in_substitution) {
+    if (!in_quotes) {
       for (auto& tok : _op_lookup) {
         // Can't match if it's too small.
         if (scratch_token.length() < tok.first.length()) {
