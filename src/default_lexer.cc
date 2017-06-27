@@ -31,6 +31,8 @@ dsh::DefaultLexer::DefaultLexer() {
   // We need to determine which operators are at risk of being matched greedily.
   // We do this outside the main lex function to save on complexity.
 
+  // TODO: Lexer needs to treat the inside of the substitution operator as a quoted string.
+
   // Compare every operator to every other operator.
   for (auto& op_a : _op_lookup) {
      _op_greedy_lookup[op_a.second] = std::vector<dsh::Operator>();
@@ -61,6 +63,7 @@ dsh::DefaultLexer::DefaultLexer() {
 std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
 
   bool in_quotes = false;         // Behavior will change for quoted arguments.
+  bool in_substitution = false;   // Behavior changes between substitution tokens.
   //bool escaped   = false;       // Behavior changes if we're expecting to escape the next character.
   std::string scratch_token;      // Argument token in progress.
   std::vector<dsh::Token> output; // The vector of tokens to return.
@@ -79,11 +82,18 @@ std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
       continue;
     }
 
-    if (!in_quotes) {
+    if (!in_quotes && !in_substitution) {
 
       // If it's a quote, we'll enter that state and start appending in the next iteration.
       if (c == '"') {
         in_quotes = true;
+        continue;
+      }
+
+      // If it's a subsitution token, we'll enter a similar state.
+      // TODO: Handle this correctly.
+      if (c == '`') {
+        in_substitution = true;
         continue;
       }
 
@@ -99,10 +109,17 @@ std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
 
     } else {
       // If we're in quotes, we need to check for an unescaped quote.
-      if (c == '"') {
+      if (in_quotes && (c == '"')) {
         output.push_back({scratch_token, dsh::Operator::Argument});
         scratch_token.clear();
         in_quotes = false;
+        continue;
+      }
+
+      if (in_substitution && (c == '`')) {
+        output.push_back({scratch_token, dsh::Operator::Substitution});
+        scratch_token.clear();
+        in_substitution = false;
         continue;
       }
     }
@@ -111,7 +128,7 @@ std::vector<dsh::Token> dsh::DefaultLexer::lex(std::string input) {
     scratch_token += c;
 
     // Now we can check for operator matches. This is the tricky part.
-    if (!in_quotes) {
+    if (!in_quotes && !in_substitution) {
       for (auto& tok : _op_lookup) {
         // Can't match if it's too small.
         if (scratch_token.length() < tok.first.length()) {

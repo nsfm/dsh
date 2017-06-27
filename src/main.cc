@@ -15,10 +15,11 @@ int main() {
   dsh::DefaultLexer lexer = dsh::DefaultLexer();
   // And the parser...
   dsh::DefaultParser parser = dsh::DefaultParser();
+  std::string test_input("Hello \"test && test\" && & | || `test substitution ${HAHA} (((` 'what' ${VAR} (``)");
 
-  std::cout << "About to lex..." << std::endl;
+  std::cout << "About to lex this input: " << test_input << std::endl;
   auto begin = std::chrono::high_resolution_clock::now();
-  std::vector<dsh::Token> tokens = lexer.lex("Hello \"test && test\" && & | || () `` 'what' ${VAR} (``)");
+  std::vector<dsh::Token> tokens = lexer.lex(test_input);
   auto end = std::chrono::high_resolution_clock::now();
   std::cout << "Lexed " << tokens.size() << " tokens in " <<
     std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << "ns!" << std::endl;
