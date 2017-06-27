@@ -15,7 +15,7 @@ int main() {
   dsh::DefaultLexer lexer = dsh::DefaultLexer();
   // And the parser...
   dsh::DefaultParser parser = dsh::DefaultParser();
-  std::string test_input("Hello \"test && test\" && & | || `test substitution ${HAHA} (((` 'what' ${VAR} (``)");
+  std::string test_input("Hello \"test && test\" && & | || `test substitution ${HAHA} (` (((('what' ${VAR} (``)");
 
   std::cout << "About to lex this input: " << test_input << std::endl;
   auto begin = std::chrono::high_resolution_clock::now();
