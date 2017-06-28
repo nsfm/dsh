@@ -2,11 +2,12 @@
 A simple, modular shell implemented in C++11.
 
 *Tested builds with:* <br/>
-gcc 6.1.1, arm-linux-gcc 4.8.1 <br/>
+gcc 6.1.1, arm-linux-gcc 4.8.1, clang-700.1.81<br/>
 GNU Make 4.2.1
 
 *Tested on:* <br/>
 Arch GNU/Linux 4.6.4-1 x86_64
+OSX 14.5.0 x86_64
 
 ## Compiling
 To build for local use, run `make`. <br/>

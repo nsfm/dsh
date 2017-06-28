@@ -81,12 +81,12 @@ void Shell<lexer_t, parser_t>::execute(dsh::Command cmd) {
   int status;
 
   if (pid == -1) {
-      throw std::invalid_argument("Failed to fork."); // TODO: Choose the right category of exception.
+      throw std::runtime_error("Failed to fork.");
   } else if (pid > 0) {
       waitpid(pid, &status, 0);
   } else {
     execvp(full_path.c_str(), &args[0]);
-    throw std::invalid_argument("Failed to exec.");
+    throw std::invalid_argument("Failed to exec: "+full_path);
   }
 
   return;

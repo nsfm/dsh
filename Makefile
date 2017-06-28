@@ -21,7 +21,7 @@ INCLUDES ?=
 # Parameters not intended to be overridden added here.
 CXXFLAGS += -pthread -std=c++11
 DEFINES  += -DCOMPILEDBY='"$(shell whoami)"' -DCOMPILEDDATE='"$(shell date)"'
-LDFLAGS  += -lstdc++ -lm -lrt -lpthread
+LDFLAGS  += -lstdc++ -lpthread
 INCLUDES += $(SRCDIR)
 
 # We'll be using GCC to generate dependency files.
