@@ -34,7 +34,7 @@ Shell<lexer_t, parser_t>::Shell(void) {
   // TODO: Load appropriate shell environment variables.
   // TODO: Should we treat PATH and PWD specially?
   _env["PWD"] = "~";
-  _env["PATH"] = "/usr/bin:/usr/local/bin:/usr/local/sbin:";
+  _env["PATH"] = "/bin:/sbin:/usr/bin:/usr/local/bin:/usr/local/sbin:";
 }
 
 template <class lexer_t, class parser_t>
