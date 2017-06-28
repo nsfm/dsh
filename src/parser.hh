@@ -11,7 +11,7 @@ namespace dsh {
 class Parser {
   public:
 
-    virtual std::vector<dsh::Command> parse(std::vector<dsh::Token>& input) = 0;
+    virtual std::vector<dsh::Command> parse(std::vector<dsh::Token> input) = 0;
 
   protected:
 

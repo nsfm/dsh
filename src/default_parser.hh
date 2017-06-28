@@ -10,7 +10,7 @@ namespace dsh {
 // The built-in dsh parser.
 class DefaultParser : protected Parser {
   public:
-    std::vector<dsh::Command> parse(std::vector<dsh::Token>& input);
+    std::vector<dsh::Command> parse(std::vector<dsh::Token> input);
 
   protected:
 

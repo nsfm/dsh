@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <utility>
 
-std::vector<dsh::Command> dsh::DefaultParser::parse(std::vector<dsh::Token>& input) {
+std::vector<dsh::Command> dsh::DefaultParser::parse(std::vector<dsh::Token> input) {
 
   // First, let's make sure every group has been terminated properly.
   std::vector<dsh::Token> startstack;
