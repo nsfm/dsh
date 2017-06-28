@@ -6,8 +6,10 @@ gcc 6.1.1, arm-linux-gcc 4.8.1, clang-700.1.81<br/>
 GNU Make 4.2.1
 
 *Tested on:* <br/>
-Arch GNU/Linux 4.6.4-1 x86_64
-OSX 14.5.0 x86_64
+Arch GNU/Linux 4.6.4-1 x86_64 <br/>
+OS X 14.5.0 x86_64
+
+Please note: dsh is still very early in development! Currently it can perform basic shell operations, but my goal is to add a plugin loading system with hooks into various internals.
 
 ## Compiling
 To build for local use, run `make`. <br/>
