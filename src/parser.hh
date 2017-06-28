@@ -11,10 +11,7 @@ namespace dsh {
 class Parser {
   public:
 
-    // The lex function accepts an input string and returns a vector of tokens.
-    // It should normalize the tokens so that they can be passed to the Parser
-    // class.
-    virtual bool parse(std::vector<dsh::Token>& input) = 0;
+    virtual std::vector<dsh::Command> parse(std::vector<dsh::Token>& input) = 0;
 
   protected:
 

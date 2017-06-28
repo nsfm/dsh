@@ -5,10 +5,9 @@
 #include <stdexcept>
 #include <utility>
 
-bool dsh::DefaultParser::parse(std::vector<dsh::Token>& input) {
+std::vector<dsh::Command> dsh::DefaultParser::parse(std::vector<dsh::Token>& input) {
 
   // First, let's make sure every group has been terminated properly.
-
   std::vector<dsh::Token> startstack;
   std::vector<dsh::Token> closestack;
 
@@ -59,6 +58,49 @@ bool dsh::DefaultParser::parse(std::vector<dsh::Token>& input) {
 
   // Now we can be confident that paired operators look good.
 
+  // TODO: Additional sanity checks.
+  // TODO: Substitutions need to be lexed and parsed separately. Their stdout can then be
+  //       used as normal dsh::Operator::Arguments.
+  // TODO: Subshells?
 
-  return false;
+  // We need to build a stack of groups to execute.
+  std::vector<dsh::Command> commands;
+  bool in_cmd = false;
+  for (auto& token : input) {
+    if (!in_cmd) {
+      switch(token.op) {
+        case dsh::Operator::Argument:
+            commands.push_back(dsh::Command(token));
+            commands.back().push_back(token); // Command name is the first argument.
+            in_cmd = true;
+          break;
+
+        case dsh::Operator::StatementEnd: // We don't really have to do anything with these.
+          continue;
+          break;
+
+        default:
+          // TODO: More helpful message
+          throw std::invalid_argument("Inappropriate token encountered.");
+          break;
+      }
+    } else { // We're building up a command
+      switch(token.op) {
+        case dsh::Operator::Argument:
+            commands.back().push_back(token);
+          break;
+
+        case dsh::Operator::StatementEnd:
+            in_cmd = false;
+          break;
+
+        default:
+          // TODO: More helpful message
+          throw std::invalid_argument("Inappropriate token encountered.");
+          break;
+      }
+    }
+  }
+
+  return commands;
 };
