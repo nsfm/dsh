@@ -9,6 +9,8 @@
 #include <unistd.h> // fork, exec, access
 #include <sys/wait.h> // waitpid
 
+#include "shell_utils.h"
+
 namespace dsh {
 
 template <class lexer_t, class parser_t>
@@ -43,30 +45,20 @@ void Shell<lexer_t, parser_t>::execute(dsh::Command cmd) {
 
   // First, figure out the first path to the executable.
   // TODO: Special cases for specific or relative paths.
-  std::vector<std::string> paths;
-
-  // Get a vector of paths that we can iterate through.
-  paths.push_back(std::string());
-  for (auto& c : _env["PATH"]) {
-    if (c == ':') {
-      paths.push_back(std::string());
-      continue;
-    }
-    paths.back().push_back(c);
-  }
+  std::vector<std::string> paths = dsh::utils::parse_env_path(_env["PATH"]);
 
   // Find the first matching instance of the executable.
   std::string full_path;
   for (auto& path : paths) {
-    if (access((path+cmd.command.contents).c_str(), X_OK)) { // TODO: Manpage says this use case is not ideal.
-      full_path = path+"/"+cmd.command.contents;
+    if (!access((path+cmd.command.contents).c_str(), X_OK)) { // TODO: Manpage says this use case is not ideal.
+      full_path = path+cmd.command.contents;
       break;
     }
   }
 
   // If we didn't find one, throw an error message up.
   if (full_path.empty()) {
-    throw std::invalid_argument(cmd.command.contents+" not found.");
+    throw std::invalid_argument(cmd.command.contents+" not found or inaccessible. Check your permissions!");
   }
 
   // The awkward part where we shove our C++ types through a C api.
@@ -96,7 +88,7 @@ template <class lexer_t, class parser_t>
 void Shell<lexer_t, parser_t>::run(void) {
   std::string input;
 
-  std::cout << "dsh# ";
+  std::cout << "dsh (" << dsh::utils::get_working_dir() << ") # ";
   std::cout.flush();
 
   while (std::getline(std::cin, input)) {
@@ -115,7 +107,7 @@ void Shell<lexer_t, parser_t>::run(void) {
       }
     }
 
-    std::cout << "dsh# ";
+    std::cout << "dsh (" << dsh::utils::get_working_dir() << ") # ";
     std::cout.flush();
   }
 
