@@ -13,7 +13,6 @@ namespace dsh::utils {
 
 // Convert the common shell PATH env variable into a vector we can iterate through.
 inline std::vector<std::string> parse_env_path(std::string path_env) {
-  // TODO: Special cases for specific or relat
   std::vector<std::string> paths;
 
   paths.push_back(std::string());
@@ -30,7 +29,7 @@ inline std::vector<std::string> parse_env_path(std::string path_env) {
 }
 
 inline std::string get_working_dir(void) {
-  std::unique_ptr<char[]> path(new char[DSH_PATH_MAX]); // Need to allocate for C api. Will be deleted at end of scope.
+  std::unique_ptr<char[]> path(new char[DSH_PATH_MAX]); // Need to allocate for C api. Deleted at end of scope.
   if (getcwd(path.get(), DSH_PATH_MAX) == NULL) {
     // Something went wrong.
     std::string preamble("Failed to get current working directory. ");
@@ -54,6 +53,44 @@ inline std::string get_working_dir(void) {
     }
   }
   return std::string(path.get());
+}
+
+// Pass an absolute or local path to change this application's working directory.
+inline int builtin_cd(dsh::Command in) {
+
+  return 0;
+}
+
+// Do nothing, successfully.
+inline int builtin_true(dsh::Command) {
+  return 0;
+}
+
+// Do nothing, unsuccessfully.
+inline int builtin_false(dsh::Command) {
+  return 1;
+}
+
+// Print current working directory.
+inline int builtin_pwd(dsh::Command) {
+  std::cout << get_working_dir() << std::endl;
+  return 0;
+}
+
+// Kill this shell instance.
+inline int builtin_exit(dsh::Command in) {
+  if (in.arguments.size() < 2) {
+    exit(0);
+  } else {
+    try {
+      exit(std::stoi(in.arguments[1].contents)); // Hopefully the first argument is an integer exit value.
+    } catch (const std::exception& e) {
+      std::cout << "Bad argument to exit: " << e.what() << " (exiting anyway)" << std::endl;
+      exit(1);
+    }
+  }
+
+  return 0;
 }
 
 }

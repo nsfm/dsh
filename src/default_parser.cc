@@ -47,6 +47,7 @@ std::vector<dsh::Command> dsh::DefaultParser::parse(std::vector<dsh::Token> inpu
   // If there are leftovers, then pairs weren't closed.
   if (startstack.size() > 0 || closestack.size() > 0) {
     // This is for the sake of helpful debug messages to the user.
+    // We're not using the stacks anymore, so I'll just re-use one...
     startstack.insert(startstack.end(), closestack.begin(), closestack.end());
     std::string err;
     for (auto& leftover : startstack) {

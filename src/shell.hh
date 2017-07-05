@@ -9,7 +9,7 @@
 #include <unistd.h> // fork, exec, access
 #include <sys/wait.h> // waitpid
 
-#include "shell_utils.h"
+#include "shell_utils.hh"
 
 namespace dsh {
 
@@ -19,19 +19,33 @@ class Shell {
     Shell(void);
 
     void run(void);
-    void execute(dsh::Command);
+    int execute(dsh::Command);
 
   private:
     lexer_t  _lexer;
     parser_t _parser;
 
     std::map<std::string, std::string> _env;
+    std::map<std::string, std::function<int(dsh::Command)>> _builtins;
 };
 
 template <class lexer_t, class parser_t>
 Shell<lexer_t, parser_t>::Shell(void) {
   _lexer = lexer_t();
   _parser = parser_t();
+
+  // Set up the map of builtins.
+  // These are stateless builtins...
+  _builtins["cd"]    = dsh::utils::builtin_cd;
+  _builtins["exit"]  = dsh::utils::builtin_exit;
+  _builtins["true"]  = dsh::utils::builtin_true;
+  _builtins["false"] = dsh::utils::builtin_false;
+  _builtins["pwd"]   = dsh::utils::builtin_pwd;
+
+  // And these are members of this shell.
+  //_builtins["export"]  = ;
+  //_builtins["env"]     = ;
+  //_builtins["history"] = ;
 
   // TODO: Load appropriate shell environment variables.
   // TODO: Should we treat PATH and PWD specially?
@@ -40,10 +54,15 @@ Shell<lexer_t, parser_t>::Shell(void) {
 }
 
 template <class lexer_t, class parser_t>
-void Shell<lexer_t, parser_t>::execute(dsh::Command cmd) {
-  // TODO: Builtins
+int Shell<lexer_t, parser_t>::execute(dsh::Command cmd) {
 
-  // First, figure out the first path to the executable.
+  // Check to see if this command should be executed as a builtin.
+  if (_builtins.count(cmd.command.contents) == 1) {
+    // Found it. So let's call it.
+    return _builtins[cmd.command.contents](cmd);
+  }
+
+  // If it wasn't a builtin command, figure out the first path to the executable.
   // TODO: Special cases for specific or relative paths.
   std::vector<std::string> paths = dsh::utils::parse_env_path(_env["PATH"]);
 
@@ -81,7 +100,7 @@ void Shell<lexer_t, parser_t>::execute(dsh::Command cmd) {
     throw std::invalid_argument("Failed to exec: "+full_path);
   }
 
-  return;
+  return status;
 }
 
 template <class lexer_t, class parser_t>
