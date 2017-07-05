@@ -106,6 +106,7 @@ int Shell<lexer_t, parser_t>::execute(dsh::Command cmd) {
 template <class lexer_t, class parser_t>
 void Shell<lexer_t, parser_t>::run(void) {
   std::string input;
+  int status = 0;
 
   std::cout << "dsh (" << dsh::utils::get_working_dir() << ") # ";
   std::cout.flush();
@@ -120,13 +121,15 @@ void Shell<lexer_t, parser_t>::run(void) {
 
     for (auto& cmd : commands) {
       try {
-        execute(cmd);
+        status = execute(cmd);
       } catch (const std::exception& e) {
         std::cout << "Error: " << e.what() << std::endl;
+        status = -1;
       }
     }
 
-    std::cout << "dsh (" << dsh::utils::get_working_dir() << ") # ";
+    std::cout << "dsh (" << dsh::utils::get_working_dir() << ") " <<
+      ((status == 0) ? "" : (std::string("[")+std::to_string(status)+"] ")) << "# ";
     std::cout.flush();
   }
 
