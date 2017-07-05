@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <memory> // std::unique_ptr
 
-#include <unistd.h> // getcwd, errno + related
+#include <unistd.h> // getcwd, chdir, errno + related
 
 #define DSH_PATH_MAX 4096
 
@@ -32,7 +32,7 @@ inline std::string get_working_dir(void) {
   std::unique_ptr<char[]> path(new char[DSH_PATH_MAX]); // Need to allocate for C api. Deleted at end of scope.
   if (getcwd(path.get(), DSH_PATH_MAX) == NULL) {
     // Something went wrong.
-    std::string preamble("Failed to get current working directory. ");
+    std::string preamble("Failed to get current working directory: ");
     switch(errno) {
       case EACCES:
         throw std::runtime_error(preamble + "Permission denied.");
@@ -57,6 +57,47 @@ inline std::string get_working_dir(void) {
 
 // Pass an absolute or local path to change this application's working directory.
 inline int builtin_cd(dsh::Command in) {
+  std::string destination;
+  if (in.arguments.size() < 2) {
+    // Default behavior for cd is to return home.
+    destination = std::string(getenv("HOME")); // TODO: A better way...
+  } else {
+    destination = in.arguments[1].contents;
+  }
+
+  if (chdir(destination.c_str()) == -1) {
+    std::string preamble = std::string("Failed to change directory (")+destination+"): ";
+    switch(errno) {
+      case EACCES:
+        throw std::runtime_error(preamble + "Permission denied.");
+        break;
+      case ENAMETOOLONG:
+        throw std::runtime_error(preamble + "Directory name was too long (max is " +
+            std::to_string(DSH_PATH_MAX) + " characters).");
+        break;
+      case EFAULT:
+        throw std::runtime_error(preamble + "Path outside accessible address space.");
+        break;
+      case EIO:
+        throw std::runtime_error(preamble + "An I/O error occurred.");
+        break;
+      case ELOOP:
+        throw std::runtime_error(preamble + "Too many symbolic links encountered while resolving path.");
+        break;
+      case ENOENT:
+        throw std::runtime_error(preamble + "Directory was removed.");
+        break;
+      case ENOTDIR:
+        throw std::runtime_error(preamble + "At least one path component was not a directory.");
+        break;
+      case ENOMEM:
+        throw std::runtime_error(preamble + "Out of kernel memory.");
+        break;
+      default: // Judging by the manpage, only EBADF could end up here, and that's only for fchdir().
+        throw std::runtime_error(preamble + "Internal error. Please submit a bug report!");
+        break;
+    }
+  }
 
   return 0;
 }
@@ -83,7 +124,7 @@ inline int builtin_exit(dsh::Command in) {
     exit(0);
   } else {
     try {
-      exit(std::stoi(in.arguments[1].contents)); // Hopefully the first argument is an integer exit value.
+      exit(std::stoi(in.arguments[1].contents)); // Hopefully the second argument is an integer exit value.
     } catch (const std::exception& e) {
       std::cout << "Bad argument to exit: " << e.what() << " (exiting anyway)" << std::endl;
       exit(1);
